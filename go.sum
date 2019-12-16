@@ -1,0 +1,4 @@
+github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83 h1:ui7X88ZMyn9/GzXUHGPLdT/5K9t5kHZEwjH2rN5tSEM=
+github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
+github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f h1:Jm+g8UDKw6O50Jd2IxtXb/ZgUhRYxIB/vwbB18Ozwok=
+github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
