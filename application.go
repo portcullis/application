@@ -79,6 +79,7 @@ func (a *Application) Run(ctx context.Context) error {
 	case <-ctx.Done():
 
 	case sig := <-schan:
+		// TODO: Handle all the signals explicitly, and a way to SIGHUP things
 		logging.Info("Signal %v received", sig)
 		cancel()
 	}
