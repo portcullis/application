@@ -25,7 +25,7 @@ type Application struct {
 }
 
 // Run creates an application with the specified name and version and applies the provided Option and begins execution
-func Run(ctx context.Context, name, version string, opts ...Option) error {
+func Run(name, version string, opts ...Option) error {
 	app := &Application{
 		Name:       name,
 		Version:    version,
@@ -36,7 +36,7 @@ func Run(ctx context.Context, name, version string, opts ...Option) error {
 		opt(app)
 	}
 
-	return app.Run(ctx)
+	return app.Run(context.Background())
 }
 
 // Run the application returning the error that terminated execution
