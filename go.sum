@@ -2,3 +2,5 @@ github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83 h1:ui7X88ZMyn9/
 github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
 github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f h1:Jm+g8UDKw6O50Jd2IxtXb/ZgUhRYxIB/vwbB18Ozwok=
 github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
+github.com/portcullis/module v0.0.0-20191217055137-df89d896d642 h1:ZDYFXU94DN/gGbWW6hJrO6cSGGC8H86WNX0HlZ77R2s=
+github.com/portcullis/module v0.0.0-20191217055137-df89d896d642/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=

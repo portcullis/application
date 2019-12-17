@@ -19,9 +19,6 @@ type Application struct {
 	Version string
 
 	Controller *module.Controller
-
-	// inner context if set
-	innerContext context.Context
 }
 
 // Run creates an application with the specified name and version and applies the provided Option and begins execution
@@ -49,9 +46,6 @@ func (a *Application) Run(ctx context.Context) error {
 		a.Controller = &module.Controller{}
 	}
 
-	// set the context for this run
-	a.innerContext = ctx
-
 	// listen to OS signals
 	schan := make(chan os.Signal, 1)
 	defer close(schan)
@@ -61,7 +55,7 @@ func (a *Application) Run(ctx context.Context) error {
 	defer signal.Stop(schan)
 
 	// create a cancellation for the signals
-	cancelCtx, cancel := context.WithCancel(a)
+	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var wg sync.WaitGroup
@@ -86,9 +80,6 @@ func (a *Application) Run(ctx context.Context) error {
 	}
 
 	wg.Wait()
-
-	// unset the context for the run, we are complete
-	a.innerContext = nil
 
 	if applicationError != nil && applicationError != context.Canceled {
 		return applicationError
