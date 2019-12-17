@@ -39,7 +39,7 @@ func Run(name, version string, opts ...Option) error {
 	return app.Run(context.Background())
 }
 
-// Run the application returning the error that terminated execution
+// Run the application returning the error that terminated execution or nil if terminated normally
 func (a *Application) Run(ctx context.Context) error {
 	a.Lock()
 	defer a.Unlock()
@@ -56,6 +56,7 @@ func (a *Application) Run(ctx context.Context) error {
 	schan := make(chan os.Signal, 1)
 	defer close(schan)
 
+	// wire these up early
 	signal.Notify(schan, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(schan)
 
@@ -76,7 +77,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 	// wait for exit scenarios
 	select {
-	case <-ctx.Done():
+	case <-cancelCtx.Done():
 
 	case sig := <-schan:
 		// TODO: Handle all the signals explicitly, and a way to SIGHUP things
