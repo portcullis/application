@@ -3,6 +3,7 @@ module github.com/portcullis/application
 go 1.13
 
 require (
-	github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83
-	github.com/portcullis/module v0.0.0-20191217055137-df89d896d642
+	github.com/portcullis/config v0.0.0-20200718224424-ef05468df8d5
+	github.com/portcullis/logging v0.0.0-20200718224534-0e694ad7477a
+	github.com/portcullis/module v0.0.0-20200718180813-ef47b4a94c31
 )

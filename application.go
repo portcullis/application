@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/portcullis/logging"
 	"github.com/portcullis/module"
@@ -46,6 +47,17 @@ func (a *Application) Run(ctx context.Context) error {
 		a.Controller = &module.Controller{}
 	}
 
+	// some defaults
+	if a.Name == "" {
+		a.Name = "Portcullis"
+	}
+	if a.Version == "" {
+		a.Version = "0.0.0"
+	}
+
+	startupTime := time.Now()
+	logging.Info("Starting application %s version %s", a.Name, a.Version)
+
 	// listen to OS signals
 	schan := make(chan os.Signal, 1)
 	defer close(schan)
@@ -75,7 +87,9 @@ func (a *Application) Run(ctx context.Context) error {
 
 	case sig := <-schan:
 		// TODO: Handle all the signals explicitly, and a way to SIGHUP things
-		logging.Info("Signal %v received", sig)
+		logging.Debug("Signal %v received", sig)
+
+		logging.Info("Stopping application %s after %v", a.Name, time.Since(startupTime))
 		cancel()
 	}
 
