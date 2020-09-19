@@ -6,7 +6,14 @@ import (
 	"github.com/portcullis/module"
 )
 
-// Bootstrap a new application with the default modules added
+// Bootstrap a new application with the default modules added.
+//
+// Default Modules.
+//
+// - Flags: Parse the flag.CommandLine.
+//
+// - Logging: Configure and setup logging to stdout, as well as set the level through configuration.
+//
 func Bootstrap(name, version string, opts ...Option) *Application {
 	app := &Application{
 		Name:       name,

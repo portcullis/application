@@ -25,7 +25,7 @@ type Application struct {
 	Controller *module.Controller
 }
 
-// Run creates an application with the specified name and version and applies the provided Option and begins execution
+// Run creates an application with the specified name and version, applies the provided options, and begins execution
 func Run(name, version string, opts ...Option) error {
 	app := &Application{
 		Name:       name,
@@ -59,14 +59,15 @@ func (a *Application) Run(ctx context.Context) error {
 	}
 
 	startupTime := time.Now()
-	logging.Info("Starting application %s version %s", a.Name, a.Version)
+	logging.Info("Starting application %s", a)
+	defer func() { logging.Info("Stopped application %s with runtime of %v", a, time.Since(startupTime)) }()
 
 	// listen to OS signals
-	schan := make(chan os.Signal, 1)
+	schan := make(chan os.Signal, 6)
 	defer close(schan)
 
 	// wire these up early
-	signal.Notify(schan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(schan, syscall.SIGTERM, syscall.SIGABRT, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGHUP, syscall.Signal(21))
 	defer signal.Stop(schan)
 
 	// create a cancellation for the signals
@@ -85,19 +86,28 @@ func (a *Application) Run(ctx context.Context) error {
 	}()
 
 	// wait for exit scenarios
-	select {
-	case <-cancelCtx.Done():
+APP_RUN:
+	for {
+		select {
+		case <-cancelCtx.Done():
+			break APP_RUN
+		case sig := <-schan:
+			logging.Debug("Signal %v received", sig)
+			if sig == syscall.SIGHUP || sig == syscall.Signal(21) {
+				logging.Warning("TODO: Implement application reload hooks")
+				// implement reload
+				break
+			}
 
-	case sig := <-schan:
-		// TODO: Handle all the signals explicitly, and a way to SIGHUP things
-		logging.Debug("Signal %v received", sig)
-
-		logging.Info("Stopping application %s after %v", a.Name, time.Since(startupTime))
-		cancel()
+			cancel()
+			break APP_RUN
+		}
 	}
 
+	// wait for finalization of Controller shutdown
 	wg.Wait()
 
+	// this is a bit of a hacky thing, but allows us to not return errors for help command line and invalid commands so the top level caller can if err != nil panic(err)
 	if applicationError != nil && applicationError != context.Canceled && !errors.Is(applicationError, flag.ErrHelp) && !strings.Contains(applicationError.Error(), "flag provided but not defined:") {
 		return applicationError
 	}
