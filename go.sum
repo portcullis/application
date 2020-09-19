@@ -10,3 +10,5 @@ github.com/portcullis/module v0.0.0-20191217055137-df89d896d642 h1:ZDYFXU94DN/gG
 github.com/portcullis/module v0.0.0-20191217055137-df89d896d642/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
 github.com/portcullis/module v0.0.0-20200718180813-ef47b4a94c31 h1:SuW7ECEDDEB0GNxR2T2cwMR78NUcahgF9ve+JP+dFS0=
 github.com/portcullis/module v0.0.0-20200718180813-ef47b4a94c31/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
+github.com/portcullis/module v0.0.0-20200919045418-3f460d896606 h1:US4QEG0cTAiinMyCskHn4bWVxomum4XUhWK/jjE7/yQ=
+github.com/portcullis/module v0.0.0-20200919045418-3f460d896606/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
