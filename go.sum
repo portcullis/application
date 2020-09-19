@@ -1,14 +1,6 @@
 github.com/portcullis/config v0.0.0-20200718224424-ef05468df8d5 h1:LiyOtPl3aUtXIiIxMtWE6iBUewdGRzT4RsCeLgytjpY=
 github.com/portcullis/config v0.0.0-20200718224424-ef05468df8d5/go.mod h1:9YmLD70up21x+xARFRm8AZf82MCOkLYA8BGMc8c6mPY=
-github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83 h1:ui7X88ZMyn9/GzXUHGPLdT/5K9t5kHZEwjH2rN5tSEM=
-github.com/portcullis/logging v0.0.0-20191216195124-dbd89d13ff83/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
 github.com/portcullis/logging v0.0.0-20200718224534-0e694ad7477a h1:YCP8ajEWwxJ2Foe+F35worV0GTZsEGd0jGFHYcGcrog=
 github.com/portcullis/logging v0.0.0-20200718224534-0e694ad7477a/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
-github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f h1:Jm+g8UDKw6O50Jd2IxtXb/ZgUhRYxIB/vwbB18Ozwok=
-github.com/portcullis/module v0.0.0-20191216195407-4a3750be7c0f/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
-github.com/portcullis/module v0.0.0-20191217055137-df89d896d642 h1:ZDYFXU94DN/gGbWW6hJrO6cSGGC8H86WNX0HlZ77R2s=
-github.com/portcullis/module v0.0.0-20191217055137-df89d896d642/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
-github.com/portcullis/module v0.0.0-20200718180813-ef47b4a94c31 h1:SuW7ECEDDEB0GNxR2T2cwMR78NUcahgF9ve+JP+dFS0=
-github.com/portcullis/module v0.0.0-20200718180813-ef47b4a94c31/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
-github.com/portcullis/module v0.0.0-20200919045418-3f460d896606 h1:US4QEG0cTAiinMyCskHn4bWVxomum4XUhWK/jjE7/yQ=
-github.com/portcullis/module v0.0.0-20200919045418-3f460d896606/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
+github.com/portcullis/module v0.0.0-20200919052001-ee27091d1f50 h1:VUCZkS1r9dL3TrGm5I7qAKA7ocyxVfRafEh5KofFyds=
+github.com/portcullis/module v0.0.0-20200919052001-ee27091d1f50/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
