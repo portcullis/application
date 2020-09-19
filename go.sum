@@ -2,5 +2,5 @@ github.com/portcullis/config v0.0.0-20200718224424-ef05468df8d5 h1:LiyOtPl3aUtXI
 github.com/portcullis/config v0.0.0-20200718224424-ef05468df8d5/go.mod h1:9YmLD70up21x+xARFRm8AZf82MCOkLYA8BGMc8c6mPY=
 github.com/portcullis/logging v0.0.0-20200718224534-0e694ad7477a h1:YCP8ajEWwxJ2Foe+F35worV0GTZsEGd0jGFHYcGcrog=
 github.com/portcullis/logging v0.0.0-20200718224534-0e694ad7477a/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
-github.com/portcullis/module v0.0.0-20200919052001-ee27091d1f50 h1:VUCZkS1r9dL3TrGm5I7qAKA7ocyxVfRafEh5KofFyds=
-github.com/portcullis/module v0.0.0-20200919052001-ee27091d1f50/go.mod h1:mCVi1IhO4xuso8FHAmwSxmJv7qqiVsaWV7l85vQ5cGY=
+github.com/portcullis/module v0.0.0-20200919062903-83adec181a62 h1:r36H8K1RXcOmNol3Bj1gfpNQKrBoxrf44Gza2uIeQWM=
+github.com/portcullis/module v0.0.0-20200919062903-83adec181a62/go.mod h1:JKbmvKlNACRiKnKe+Bqj5NgfdHWpEvQE1QY1wnRpbbw=

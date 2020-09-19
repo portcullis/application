@@ -57,6 +57,9 @@ func New() module.Module {
 	// make it a flag -level
 	m.cfg.levelSetting.Flag("level", flag.CommandLine)
 
+	// BUG: There is an issue where if you do -level=debug that it isn't read until Initialize() of the Flag package, we might have to duplicate that, and eventually the ENV variable...
+	//      This isn't totally ideal, but we dont' want to miss any logging at the beginning of the application
+
 	return m
 }
 

@@ -23,8 +23,8 @@ func New() module.Module {
 	return m
 }
 
-func (m *flagModule) PreStart(ctx context.Context) error {
-	return m.fs.Parse(os.Args[1:])
+func (m *flagModule) Initialize(ctx context.Context) (context.Context, error) {
+	return nil, m.fs.Parse(os.Args[1:])
 }
 
 func (m *flagModule) Start(ctx context.Context) error {
