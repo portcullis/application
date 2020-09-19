@@ -2,8 +2,11 @@ package application
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -95,7 +98,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 	wg.Wait()
 
-	if applicationError != nil && applicationError != context.Canceled {
+	if applicationError != nil && applicationError != context.Canceled && !errors.Is(applicationError, flag.ErrHelp) && !strings.Contains(applicationError.Error(), "flag provided but not defined:") {
 		return applicationError
 	}
 
