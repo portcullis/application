@@ -44,8 +44,6 @@ func (c *Controller) Add(name string, m Module) {
 		return
 	}
 
-	fmt.Printf("Modules %q: %T %+v\n", name, m, m)
-
 	c.modules[name] = &moduleReference{
 		name:           name,
 		implementation: m,
