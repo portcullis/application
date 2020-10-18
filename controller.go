@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -39,9 +40,11 @@ func (c *Controller) Add(name string, m Module) {
 	}
 
 	// if the module is nil, we don't add it, this way constructors/functions can return nil to disable adding
-	if m == nil {
+	if isNil(m) {
 		return
 	}
+
+	fmt.Printf("Modules %q: %T %+v\n", name, m, m)
 
 	c.modules[name] = &moduleReference{
 		name:           name,
@@ -222,4 +225,28 @@ func sortModules(modules map[string]*moduleReference) []*moduleReference {
 	})
 
 	return mods
+}
+
+// need this in order to deal with the private type returns of nil
+//
+// example being:
+//
+//     type module struct {}
+//
+//     func New() *module { return nil }
+//
+// The above code will pass a check for if result == nil {}
+//
+// Credit: https://medium.com/@mangatmodi/go-check-nil-interface-the-right-way-d142776edef1
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		return reflect.ValueOf(i).IsNil()
+	}
+
+	return false
 }
