@@ -4,17 +4,15 @@ import (
 	"context"
 	"flag"
 	"os"
-
-	"github.com/portcullis/module"
 )
 
-type flagModule struct {
+type module struct {
 	fs *flag.FlagSet
 }
 
-// New returns a new module.Module that will expose and parse command line flags using the go flag package
-func New() module.Module {
-	m := &flagModule{
+// New returns a new application.Module implementation that will expose and parse command line flags using the go flag package
+func New() *module {
+	m := &module{
 		fs: flag.CommandLine,
 	}
 
@@ -23,14 +21,14 @@ func New() module.Module {
 	return m
 }
 
-func (m *flagModule) Initialize(ctx context.Context) (context.Context, error) {
+func (m *module) Initialize(ctx context.Context) (context.Context, error) {
 	return nil, m.fs.Parse(os.Args[1:])
 }
 
-func (m *flagModule) Start(ctx context.Context) error {
+func (m *module) Start(ctx context.Context) error {
 	return nil
 }
 
-func (m *flagModule) Stop(ctx context.Context) error {
+func (m *module) Stop(ctx context.Context) error {
 	return nil
 }

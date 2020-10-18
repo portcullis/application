@@ -8,10 +8,9 @@ import (
 	"github.com/portcullis/config"
 	"github.com/portcullis/logging"
 	writer "github.com/portcullis/logging/format/simple"
-	"github.com/portcullis/module"
 )
 
-type loggingModule struct {
+type module struct {
 	cfg    *cfg
 	writer *writer.Writer
 }
@@ -24,8 +23,8 @@ type cfg struct {
 }
 
 // New returns a new logging module.Module
-func New() module.Module {
-	m := &loggingModule{
+func New() *module {
+	m := &module{
 		cfg: &cfg{
 			Level: logging.LevelInformational,
 		},
@@ -63,10 +62,10 @@ func New() module.Module {
 	return m
 }
 
-func (m loggingModule) Start(ctx context.Context) error {
+func (m module) Start(ctx context.Context) error {
 	return nil
 }
 
-func (m loggingModule) Stop(ctx context.Context) error {
+func (m module) Stop(ctx context.Context) error {
 	return nil
 }

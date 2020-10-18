@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/portcullis/logging"
-	"github.com/portcullis/module"
 )
 
 // Application defines an instance of an application
@@ -22,7 +21,7 @@ type Application struct {
 	Name    string
 	Version string
 
-	Controller *module.Controller
+	Controller *Controller
 }
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
@@ -30,7 +29,7 @@ func Run(name, version string, opts ...Option) error {
 	app := &Application{
 		Name:       name,
 		Version:    version,
-		Controller: &module.Controller{},
+		Controller: &Controller{},
 	}
 
 	for _, opt := range opts {
@@ -47,7 +46,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 	// create one if it doesn't exist
 	if a.Controller == nil {
-		a.Controller = &module.Controller{}
+		a.Controller = &Controller{}
 	}
 
 	// some defaults
