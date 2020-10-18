@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"os"
 	"os/signal"
@@ -11,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/portcullis/logging"
 )
 
@@ -18,10 +18,12 @@ import (
 type Application struct {
 	sync.Mutex
 
-	Name    string
-	Version string
-
+	Name       string
+	Version    string
 	Controller *Controller
+
+	configuration *Configuration
+	configFile    string
 }
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
@@ -49,12 +51,18 @@ func (a *Application) Run(ctx context.Context) error {
 		a.Controller = &Controller{}
 	}
 
+	ctx = context.WithValue(ctx, applicationContextKey, a)
+
 	// some defaults
 	if a.Name == "" {
 		a.Name = "Portcullis"
 	}
 	if a.Version == "" {
 		a.Version = "0.0.0"
+	}
+
+	if err := a.loadConfig(ctx); err != nil {
+		return err
 	}
 
 	startupTime := time.Now()
@@ -73,13 +81,15 @@ func (a *Application) Run(ctx context.Context) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	var applicationError error
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	var applicationError error
+	// run the modules
 	go func() {
 		// run the application in the background
-		applicationError = a.Controller.Run(context.WithValue(cancelCtx, applicationContextKey, a))
+		applicationError = a.Controller.Run(cancelCtx)
 		wg.Done()
 		cancel()
 	}()
@@ -109,6 +119,23 @@ APP_RUN:
 	// this is a bit of a hacky thing, but allows us to not return errors for help command line and invalid commands so the top level caller can if err != nil panic(err)
 	if applicationError != nil && applicationError != context.Canceled && !errors.Is(applicationError, flag.ErrHelp) && !strings.Contains(applicationError.Error(), "flag provided but not defined:") {
 		return applicationError
+	}
+
+	return nil
+}
+
+func (a *Application) loadConfig(ctx context.Context) error {
+	if a.configuration == nil {
+		return nil
+	}
+
+	if a.configFile == "" {
+		return nil
+	}
+
+	logging.Info("Loading configuration file %s", a.configFile)
+	if diags := a.configuration.DecodeFile(ctx, a.configFile); diags.HasErrors() {
+		return errors.Wrap(diags, "failed to load application configuration")
 	}
 
 	return nil

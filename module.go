@@ -22,3 +22,23 @@ type PreStarter interface {
 type PostStarter interface {
 	PostStart(ctx context.Context) error
 }
+
+// Configurable can be optionally implemented by any module to accept user configuration.
+type Configurable interface {
+	// Config should return a pointer to an allocated configuration
+	// structure. This structure will be written to directly with the
+	// decoded configuration. If this returns nil, then it is as if
+	// Configurable was not implemented.
+	Config() (interface{}, error)
+}
+
+// ConfigurableNotify is an optional interface that can be implemented
+// by any module to receive a notification that the configuration
+// was decoded.
+type ConfigurableNotify interface {
+	Configurable
+
+	// ConfigSet is called with the value of the configuration after
+	// decoding is complete successfully.
+	ConfigSet(interface{}) error
+}

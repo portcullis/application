@@ -1,6 +1,8 @@
 package application
 
-import "strings"
+import (
+	"strings"
+)
 
 // Error for modules containing multiple errors
 type Error struct {
