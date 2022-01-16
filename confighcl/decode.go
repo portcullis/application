@@ -3,6 +3,8 @@ package confighcl
 import (
 	"fmt"
 	"reflect"
+	"strings"
+	"time"
 
 	"github.com/zclconf/go-cty/cty"
 
@@ -128,10 +130,32 @@ func decodeBodyToStruct(body hcl.Body, ctx *hcl.EvalContext, val reflect.Value, 
 			fieldV.Set(reflect.ValueOf(attr))
 		case exprType.AssignableTo(field.Type):
 			fieldV.Set(reflect.ValueOf(attr.Expr))
+
 		default:
-			diags = append(diags, DecodeExpression(
-				attr.Expr, ctx, fieldV.Addr().Interface(),
-			)...)
+			// special handling for time.Duration (HACK LIKE ITS GOLD)
+			if strings.EqualFold(field.Type.Name(), "Duration") {
+				stringVal := ""
+				diags = append(diags, DecodeExpression(attr.Expr, ctx, &stringVal)...)
+
+				if !diags.HasErrors() {
+					ds, err := time.ParseDuration(stringVal)
+					if err != nil {
+						diags = append(diags, &hcl.Diagnostic{
+							Severity: hcl.DiagError,
+							Summary:  "Failed to parse duration",
+							Detail:   fmt.Sprintf("Invalid duration string: %s", strings.TrimPrefix(err.Error(), "time: ")),
+							Subject:  attr.Expr.StartRange().Ptr(),
+							Context:  attr.Expr.Range().Ptr(),
+						})
+					} else {
+						fieldV.Set(reflect.ValueOf(ds))
+					}
+				}
+			} else {
+				diags = append(diags, DecodeExpression(
+					attr.Expr, ctx, fieldV.Addr().Interface(),
+				)...)
+			}
 		}
 	}
 
