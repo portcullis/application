@@ -22,10 +22,10 @@ type Application struct {
 	Name       string
 	Version    string
 	Controller *Controller
+	Settings   *config.Set
 
 	configuration *Configuration
 	configFile    string
-	settings      *config.Set
 }
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
@@ -34,7 +34,7 @@ func Run(name, version string, opts ...Option) error {
 		Name:       name,
 		Version:    version,
 		Controller: &Controller{},
-		settings:   &config.Set{},
+		Settings:   &config.Set{},
 	}
 
 	for _, opt := range opts {
@@ -54,8 +54,12 @@ func (a *Application) Run(ctx context.Context) error {
 		a.Controller = &Controller{}
 	}
 
+	if a.Settings == nil {
+		a.Settings = &config.Set{}
+	}
+
 	ctx = context.WithValue(ctx, applicationContextKey, a)
-	ctx = config.NewContext(ctx, a.settings)
+	ctx = config.NewContext(ctx, a.Settings)
 
 	// some defaults
 	if a.Name == "" {
