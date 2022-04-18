@@ -16,6 +16,8 @@ github.com/golang/protobuf v1.3.4/go.mod h1:vzj43D7+SQXF/4pzW/hwtAqwc6iTitCiVSaW
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.5.6 h1:BKbKCqvP6I+rmFHt06ZmyQtvB8xAkWdhFyr0ZUNZcxQ=
 github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
+github.com/google/go-cmp v0.5.7 h1:81/ik6ipDQS2aGcBfIN5dHDB36BwrStyeAQquSYCV4o=
+github.com/google/go-cmp v0.5.7/go.mod h1:n+brtR0CgQNWTVd5ZUFpTBC8YFBDLK/h/bpaJ8/DtOE=
 github.com/hashicorp/hcl/v2 v2.11.1 h1:yTyWcXcm9XB0TEkyU/JCRU6rYy4K+mgLtzn2wlrJbcc=
 github.com/hashicorp/hcl/v2 v2.11.1/go.mod h1:FwWsfWEjyV/CMj8s/gqAuiviY72rJ1/oayI9WftqcKg=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
@@ -33,6 +35,8 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/portcullis/config v0.0.0-20200919063344-86bf315798d3 h1:y1qqlNqpBQ8P5TMaU9xT2bTuXt5KzPES+yFWc7KEnkI=
 github.com/portcullis/config v0.0.0-20200919063344-86bf315798d3/go.mod h1:9YmLD70up21x+xARFRm8AZf82MCOkLYA8BGMc8c6mPY=
+github.com/portcullis/config v0.0.0-20220418231249-ea531cedeac7 h1:twoUrOKrv0Q5sRtdtk2pJPrVwfdk34hOnTSc85JgQzI=
+github.com/portcullis/config v0.0.0-20220418231249-ea531cedeac7/go.mod h1:ZTWvMlzL4O0PL0JrxdDwDCYzfrlL/mV60DmJpymJJu0=
 github.com/portcullis/logging v0.0.0-20200919063358-4abaef56dee5 h1:pIcG3HBU6p+M9WYRQB4GRe6W1MXyTxHRRle53JnQuQM=
 github.com/portcullis/logging v0.0.0-20200919063358-4abaef56dee5/go.mod h1:jZS5zWlpM09FJDDi4ZeBTEg8fzBxFQX8IDHcziDWckY=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=

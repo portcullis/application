@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/portcullis/config"
 	"github.com/portcullis/logging"
 )
 
@@ -24,6 +25,7 @@ type Application struct {
 
 	configuration *Configuration
 	configFile    string
+	settings      *config.Set
 }
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
@@ -32,6 +34,7 @@ func Run(name, version string, opts ...Option) error {
 		Name:       name,
 		Version:    version,
 		Controller: &Controller{},
+		settings:   &config.Set{},
 	}
 
 	for _, opt := range opts {
@@ -52,6 +55,7 @@ func (a *Application) Run(ctx context.Context) error {
 	}
 
 	ctx = context.WithValue(ctx, applicationContextKey, a)
+	ctx = config.NewContext(ctx, a.settings)
 
 	// some defaults
 	if a.Name == "" {
