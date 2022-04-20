@@ -16,10 +16,7 @@ type module struct {
 }
 
 type cfg struct {
-	Level logging.Level
-
-	// TODO: remove when config supports binding/sets
-	levelSetting *config.Setting
+	Level logging.Level `flag:"level" description:"Logging level to output"`
 }
 
 // New returns a new logging module.Module
@@ -35,29 +32,21 @@ func New() *module {
 		writer.Level(m.cfg.Level),
 	)
 
-	m.cfg.levelSetting = &config.Setting{
-		Name:         "Level",
-		Path:         "Logging",
-		Description:  "Logging level to output",
-		DefaultValue: m.cfg.Level.String(),
-		Value:        &m.cfg.Level,
-	}
+	config.Default.
+		Subset("Logging").
+		Bind(m.cfg).
+		Notify(config.NotifyFunc(func(s *config.Setting) {
+			writer.Level(m.cfg.Level)(m.writer)
+		}))
 
 	logging.DefaultLog = logging.New(
 		logging.WithWriter(m.writer),
 	)
 
-	// watch and update the current log level
-	m.cfg.levelSetting.Notify(config.NotifyFunc(func(s *config.Setting) {
-		writer.Level(m.cfg.Level)(m.writer)
-	}))
-
-	// TODO: Remove once binding is available
-	// make it a flag -level
-	m.cfg.levelSetting.Flag("level", flag.CommandLine)
-
 	// BUG: There is an issue where if you do -level=debug that it isn't read until Initialize() of the Flag package, we might have to duplicate that, and eventually the ENV variable...
 	//      This isn't totally ideal, but we dont' want to miss any logging at the beginning of the application
+
+	flag.CommandLine.Parse(os.Args[1:])
 
 	return m
 }

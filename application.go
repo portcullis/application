@@ -26,6 +26,7 @@ type Application struct {
 
 	configuration *Configuration
 	configFile    string
+	errorCh       chan error
 }
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
@@ -34,7 +35,6 @@ func Run(name, version string, opts ...Option) error {
 		Name:       name,
 		Version:    version,
 		Controller: &Controller{},
-		Settings:   &config.Set{},
 	}
 
 	for _, opt := range opts {
@@ -49,13 +49,17 @@ func (a *Application) Run(ctx context.Context) error {
 	a.Lock()
 	defer a.Unlock()
 
+	a.errorCh = make(chan error, 1)
+	defer func() { close(a.errorCh); a.errorCh = nil }()
+
 	// create one if it doesn't exist
 	if a.Controller == nil {
 		a.Controller = &Controller{}
 	}
 
 	if a.Settings == nil {
-		a.Settings = &config.Set{}
+		// use whatever is configured in the context
+		a.Settings = config.FromContext(ctx)
 	}
 
 	ctx = context.WithValue(ctx, applicationContextKey, a)
@@ -106,13 +110,22 @@ func (a *Application) Run(ctx context.Context) error {
 APP_RUN:
 	for {
 		select {
+		case err := <-a.errorCh:
+			cancel()
+
+			// we wait for the controller to stop running so we can set the error
+			wg.Wait()
+
+			applicationError = (&Error{Errors: []error{err}}).Append(applicationError)
+
 		case <-cancelCtx.Done():
 			break APP_RUN
+
 		case sig := <-schan:
 			logging.Debug("Signal %v received", sig)
 			if sig == syscall.SIGHUP || sig == syscall.Signal(21) {
 				logging.Warning("TODO: Implement application reload hooks")
-				// implement reload
+				// TODO: implement reload
 				break
 			}
 
@@ -130,6 +143,17 @@ APP_RUN:
 	}
 
 	return nil
+}
+
+// Exit will shutdown the application with the specified error.
+//
+// This call can be made from any go routine, only the first call to Exit will be read (first in) and shutdown the application
+func (a *Application) Exit(err error) {
+	if a.errorCh == nil || err == nil {
+		return
+	}
+
+	a.errorCh <- err
 }
 
 func (a *Application) loadConfig(ctx context.Context) error {
