@@ -3,10 +3,10 @@ module github.com/portcullis/application
 go 1.18
 
 require (
-	github.com/hashicorp/hcl/v2 v2.11.1
+	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/pkg/errors v0.9.1
-	github.com/portcullis/config v0.0.0-20220420033620-745b5470e691
-	github.com/portcullis/logging v0.0.0-20200919063358-4abaef56dee5
+	github.com/portcullis/config v0.1.0
+	github.com/portcullis/logging v0.1.1
 	github.com/zclconf/go-cty v1.10.0
 )
 

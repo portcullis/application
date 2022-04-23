@@ -2,7 +2,6 @@ package logging
 
 import (
 	"context"
-	"flag"
 	"os"
 
 	"github.com/portcullis/config"
@@ -42,11 +41,6 @@ func New() *module {
 	logging.DefaultLog = logging.New(
 		logging.WithWriter(m.writer),
 	)
-
-	// BUG: There is an issue where if you do -level=debug that it isn't read until Initialize() of the Flag package, we might have to duplicate that, and eventually the ENV variable...
-	//      This isn't totally ideal, but we dont' want to miss any logging at the beginning of the application
-
-	flag.CommandLine.Parse(os.Args[1:])
 
 	return m
 }
