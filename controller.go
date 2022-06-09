@@ -135,6 +135,21 @@ func (c *Controller) Run(ctx context.Context) error {
 	// account for any modules added in Initialize
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
+		if installer, ok := rm.implementation.(Installer); ok {
+			ts = time.Now()
+			logging.Debug("Installing module %q", rm.name)
+			err := installer.Install(ctx)
+			if err != nil {
+				exitErr = exitErr.Append(fmt.Errorf("failed to install module %q: %w", rm.name, err))
+				goto shutdown
+			}
+			logging.Debug("Installed module %q in %v", rm.name, time.Since(ts))
+		}
+	}
+
+	// account for any modules added in Initialize
+	runModules = sortModules(c.modules)
+	for _, rm := range runModules {
 		if prestarter, ok := rm.implementation.(PreStarter); ok {
 			ts = time.Now()
 			logging.Debug("PreStarting module %q", rm.name)

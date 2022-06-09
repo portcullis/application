@@ -31,6 +31,11 @@ type Application struct {
 
 // Run creates an application with the specified name and version, applies the provided options, and begins execution
 func Run(name, version string, opts ...Option) error {
+	return New(name, version, opts...).Run(context.Background())
+}
+
+// New creates a new application and executes the options
+func New(name, version string, opts ...Option) *Application {
 	app := &Application{
 		Name:       name,
 		Version:    version,
@@ -41,7 +46,54 @@ func Run(name, version string, opts ...Option) error {
 		opt(app)
 	}
 
-	return app.Run(context.Background())
+	return app
+}
+
+// Validate will validate the configuration and return any errors
+func (a *Application) Validate(ctx context.Context) error {
+	a.Lock()
+	defer a.Unlock()
+
+	return a.loadConfig(a.initialize(ctx))
+}
+
+// Install will execute all modules that have an application.Initializer implementation, then all modules with that implement the application.Installer
+func (a *Application) Install(ctx context.Context) error {
+	a.Lock()
+	defer a.Unlock()
+
+	ctx = a.initialize(ctx)
+	if err := a.loadConfig(ctx); err != nil {
+		return err
+	}
+
+	initializeModules := sortModules(a.Controller.modules)
+	for _, im := range initializeModules {
+		if initializer, ok := im.implementation.(Initializer); ok {
+			itx, err := initializer.Initialize(ctx)
+			if err != nil {
+				return errors.Wrapf(err, "failed to initialize module %q", im.name)
+			}
+
+			if itx != nil {
+				ctx = itx
+			}
+		}
+	}
+
+	installModules := sortModules(a.Controller.modules)
+	for _, im := range installModules {
+		installer, ok := im.implementation.(Installer)
+		if !ok {
+			continue
+		}
+
+		if err := installer.Install(ctx); err != nil {
+			return errors.Wrapf(err, "failed to install module %q", im.name)
+		}
+	}
+
+	return nil
 }
 
 // Run the application returning the error that terminated execution or nil if terminated normally
@@ -49,33 +101,13 @@ func (a *Application) Run(ctx context.Context) error {
 	a.Lock()
 	defer a.Unlock()
 
-	a.errorCh = make(chan error, 1)
-	defer func() { close(a.errorCh); a.errorCh = nil }()
-
-	// create one if it doesn't exist
-	if a.Controller == nil {
-		a.Controller = &Controller{}
-	}
-
-	if a.Settings == nil {
-		// use whatever is configured in the context
-		a.Settings = config.FromContext(ctx)
-	}
-
-	ctx = context.WithValue(ctx, applicationContextKey, a)
-	ctx = config.NewContext(ctx, a.Settings)
-
-	// some defaults
-	if a.Name == "" {
-		a.Name = "Portcullis"
-	}
-	if a.Version == "" {
-		a.Version = "0.0.0"
-	}
-
+	ctx = a.initialize(ctx)
 	if err := a.loadConfig(ctx); err != nil {
 		return err
 	}
+
+	a.errorCh = make(chan error, 1)
+	defer func() { close(a.errorCh); a.errorCh = nil }()
 
 	startupTime := time.Now()
 	logging.Info("Starting application %s", a)
@@ -154,6 +186,30 @@ func (a *Application) Exit(err error) {
 	}
 
 	a.errorCh <- err
+}
+
+func (a *Application) initialize(ctx context.Context) context.Context {
+	if a.Controller == nil {
+		a.Controller = &Controller{}
+	}
+
+	if a.Settings == nil {
+		// use whatever is configured in the context
+		a.Settings = config.FromContext(ctx)
+	}
+
+	ctx = context.WithValue(ctx, applicationContextKey, a)
+	ctx = config.NewContext(ctx, a.Settings)
+
+	// some defaults
+	if a.Name == "" {
+		a.Name = "Portcullis"
+	}
+	if a.Version == "" {
+		a.Version = "0.0.0"
+	}
+
+	return ctx
 }
 
 func (a *Application) loadConfig(ctx context.Context) error {
