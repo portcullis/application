@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -10,10 +12,15 @@ import (
 )
 
 func TestHCL(t *testing.T) {
+	os.Setenv("TEST", "set-from-env")
+	defer os.Unsetenv("TEST")
+
+	cfg := &Configuration{}
+
 	tests := []struct {
 		Name  string
 		Input string
-		Value interface{}
+		Value any
 	}{
 		{
 			Name:  "basic",
@@ -29,6 +36,20 @@ func TestHCL(t *testing.T) {
 				Timeout time.Duration `config:"timeout,optional"`
 			}{},
 		},
+		{
+			Name:  "Stdlib",
+			Input: `hello = lower("HELLO")`,
+			Value: &struct {
+				Hello string `config:"hello,optional"`
+			}{},
+		},
+		{
+			Name:  "env",
+			Input: `hello = env("USER", "username")`,
+			Value: &struct {
+				Hello string `config:"hello,optional"`
+			}{},
+		},
 	}
 
 	for _, test := range tests {
@@ -38,7 +59,7 @@ func TestHCL(t *testing.T) {
 				t.Fatalf(diags.Error())
 			}
 
-			diags = confighcl.DecodeBody(file.Body, &hcl.EvalContext{}, test.Value)
+			diags = confighcl.DecodeBody(file.Body, cfg.EvalContext(context.Background()), test.Value)
 			if diags.HasErrors() {
 				t.Fatalf(diags.Error())
 			}

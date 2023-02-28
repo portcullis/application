@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,8 +12,8 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/json"
 	"github.com/portcullis/application/confighcl"
+	"github.com/portcullis/application/confighcl/funcs"
 	"github.com/zclconf/go-cty/cty"
-	"github.com/zclconf/go-cty/cty/function"
 )
 
 var (
@@ -28,7 +27,7 @@ type Configuration struct{}
 
 // DecodeFile will open and decode the provided file, returning an error when parsing fails
 func (c Configuration) DecodeFile(ctx context.Context, filename string) hcl.Diagnostics {
-	src, err := ioutil.ReadFile(filename)
+	src, err := os.ReadFile(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return hcl.Diagnostics{
@@ -137,10 +136,14 @@ func (Configuration) EvalContext(ctx context.Context) *hcl.EvalContext {
 	var result hcl.EvalContext
 
 	// functions
-	result.Functions = map[string]function.Function{}
+	result.Functions = funcs.Stdlib()
 
 	// variables
 	allMap := map[string]interface{}{}
+
+	if hs, err := os.Hostname(); err == nil {
+		_ = addNestedKey(allMap, "host.name", hs)
+	}
 
 	if app := FromContext(ctx); app != nil {
 		_ = addNestedKey(allMap, "application.name", app.Name)
