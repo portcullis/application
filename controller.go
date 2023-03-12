@@ -112,19 +112,18 @@ func (c *Controller) Run(ctx context.Context) error {
 	sts := time.Now()
 	logging.Debug("Module controller intializations starting")
 
-	var ts time.Time
-
 	// build a list of modules so we can run them in the correct ordering (as added)
 	runModules := sortModules(c.modules)
 	for _, rm := range runModules {
 		if initializer, ok := rm.implementation.(Initializer); ok {
-			ts = time.Now()
+			ts := time.Now()
 			logging.Debug("Initializing module %q", rm.name)
 			itx, err := initializer.Initialize(ctx)
 			if err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to initialize module %q: %w", rm.name, err))
-				goto shutdown
+				return exitErr.Err()
 			}
+
 			if itx != nil {
 				ctx = itx
 			}
@@ -136,7 +135,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
 		if installer, ok := rm.implementation.(Installer); ok {
-			ts = time.Now()
+			ts := time.Now()
 			logging.Debug("Installing module %q", rm.name)
 			err := installer.Install(ctx)
 			if err != nil {
@@ -151,7 +150,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
 		if prestarter, ok := rm.implementation.(PreStarter); ok {
-			ts = time.Now()
+			ts := time.Now()
 			logging.Debug("PreStarting module %q", rm.name)
 			if err := prestarter.PreStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to prestart module %q: %w", rm.name, err))
@@ -164,7 +163,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	// account for any modules added in PreStart
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
-		ts = time.Now()
+		ts := time.Now()
 		logging.Debug("Starting module %q", rm.name)
 		if err := rm.implementation.Start(ctx); err != nil {
 			exitErr = exitErr.Append(fmt.Errorf("failed to start module %q: %w", rm.name, err))
@@ -176,7 +175,7 @@ func (c *Controller) Run(ctx context.Context) error {
 
 	for _, rm := range runModules {
 		if poststarter, ok := rm.implementation.(PostStarter); ok {
-			ts = time.Now()
+			ts := time.Now()
 			logging.Debug("PostStarting module %q", rm.name)
 			if err := poststarter.PostStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to poststart module %q: %w", rm.name, err))
@@ -208,7 +207,7 @@ shutdown:
 			continue
 		}
 
-		ts = time.Now()
+		ts := time.Now()
 		logging.Debug("Stopping module %q", rm.name)
 		rm.started = false
 		if err := rm.implementation.Stop(ctx); err != nil {
@@ -244,9 +243,9 @@ func sortModules(modules map[string]*moduleReference) []*moduleReference {
 //
 // example being:
 //
-//     type module struct {}
+//	type module struct {}
 //
-//     func New() *module { return nil }
+//	func New() *module { return nil }
 //
 // The above code will pass a check for if result == nil {}
 //
