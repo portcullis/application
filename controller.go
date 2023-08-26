@@ -3,13 +3,12 @@ package application
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/portcullis/logging"
 )
 
 // Controller for modules
@@ -17,6 +16,7 @@ type Controller struct {
 	modules map[string]*moduleReference
 	orderer *int64
 	once    sync.Once
+	logger  *slog.Logger
 }
 
 type moduleReference struct {
@@ -29,6 +29,9 @@ type moduleReference struct {
 func (c *Controller) init() {
 	c.modules = make(map[string]*moduleReference)
 	c.orderer = new(int64)
+	if c.logger == nil {
+		c.logger = slog.Default()
+	}
 }
 
 // Add the specified module, if a module with the same name exists, it will be overwritten
@@ -110,14 +113,14 @@ func (c *Controller) Run(ctx context.Context) error {
 	exitErr := new(Error)
 
 	sts := time.Now()
-	logging.Debug("Module controller intializations starting")
+	c.logger.Debug("Module controller intializations starting")
 
 	// build a list of modules so we can run them in the correct ordering (as added)
 	runModules := sortModules(c.modules)
 	for _, rm := range runModules {
 		if initializer, ok := rm.implementation.(Initializer); ok {
 			ts := time.Now()
-			logging.Debug("Initializing module %q", rm.name)
+			c.logger.Debug("Initializing module", "name", rm.name)
 			itx, err := initializer.Initialize(ctx)
 			if err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to initialize module %q: %w", rm.name, err))
@@ -127,7 +130,7 @@ func (c *Controller) Run(ctx context.Context) error {
 			if itx != nil {
 				ctx = itx
 			}
-			logging.Debug("Initialized module %q in %v", rm.name, time.Since(ts))
+			c.logger.Debug("Initialized module", "name", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -136,13 +139,13 @@ func (c *Controller) Run(ctx context.Context) error {
 	for _, rm := range runModules {
 		if installer, ok := rm.implementation.(Installer); ok {
 			ts := time.Now()
-			logging.Debug("Installing module %q", rm.name)
+			c.logger.Debug("Installing module", "name", rm.name)
 			err := installer.Install(ctx)
 			if err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to install module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			logging.Debug("Installed module %q in %v", rm.name, time.Since(ts))
+			c.logger.Debug("Installed module", "name", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -151,12 +154,12 @@ func (c *Controller) Run(ctx context.Context) error {
 	for _, rm := range runModules {
 		if prestarter, ok := rm.implementation.(PreStarter); ok {
 			ts := time.Now()
-			logging.Debug("PreStarting module %q", rm.name)
+			c.logger.Debug("PreStarting module", "name", rm.name)
 			if err := prestarter.PreStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to prestart module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			logging.Debug("PreStarted module %q in %v", rm.name, time.Since(ts))
+			c.logger.Debug("PreStarted module", "name", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -164,28 +167,28 @@ func (c *Controller) Run(ctx context.Context) error {
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
 		ts := time.Now()
-		logging.Debug("Starting module %q", rm.name)
+		c.logger.Debug("Starting module", "name", rm.name)
 		if err := rm.implementation.Start(ctx); err != nil {
 			exitErr = exitErr.Append(fmt.Errorf("failed to start module %q: %w", rm.name, err))
 			goto shutdown
 		}
 		rm.started = true
-		logging.Debug("Started module %q in %v", rm.name, time.Since(ts))
+		c.logger.Debug("Started module", "name", rm.name, "duration", time.Since(ts))
 	}
 
 	for _, rm := range runModules {
 		if poststarter, ok := rm.implementation.(PostStarter); ok {
 			ts := time.Now()
-			logging.Debug("PostStarting module %q", rm.name)
+			c.logger.Debug("PostStarting module", "name", rm.name)
 			if err := poststarter.PostStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to poststart module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			logging.Debug("PostStarted module %q in %v", rm.name, time.Since(ts))
+			c.logger.Debug("PostStarted module", "name", rm.name, "duration", time.Since(ts))
 		}
 	}
 
-	logging.Debug("Module controller intializations completed in %v", time.Since(sts))
+	c.logger.Debug("Module controller intializations completed", "duration", time.Since(sts))
 
 	if ctx.Done() != nil {
 		<-ctx.Done()
@@ -193,8 +196,8 @@ func (c *Controller) Run(ctx context.Context) error {
 
 shutdown:
 	sts = time.Now()
-	logging.Debug("Module controller teardown starting")
-	defer func() { logging.Debug("Module controller teardown completed in %v", time.Since(sts)) }()
+	c.logger.Debug("Module controller teardown starting")
+	defer func() { c.logger.Debug("Module controller teardown completed", "duration", time.Since(sts)) }()
 
 	// reverse them
 	for i, j := 0, len(runModules)-1; i < j; i, j = i+1, j-1 {
@@ -208,12 +211,12 @@ shutdown:
 		}
 
 		ts := time.Now()
-		logging.Debug("Stopping module %q", rm.name)
+		c.logger.Debug("Stopping module", "name", rm.name)
 		rm.started = false
 		if err := rm.implementation.Stop(ctx); err != nil {
 			exitErr = exitErr.Append(fmt.Errorf("failed to stop module %q: %w", rm.name, err))
 		}
-		logging.Debug("Stopped module %q in %v", rm.name, time.Since(ts))
+		c.logger.Debug("Stopped module", "name", rm.name, "duration", time.Since(ts))
 	}
 
 	if ctx.Err() != context.Canceled {

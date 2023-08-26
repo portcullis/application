@@ -2,7 +2,10 @@ package application
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -10,9 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/portcullis/config"
-	"github.com/portcullis/logging"
 )
 
 // Application defines an instance of an application
@@ -23,6 +24,7 @@ type Application struct {
 	Version    string
 	Controller *Controller
 	Settings   *config.Set
+	Logger     *slog.Logger
 
 	configuration *Configuration
 	configFile    string
@@ -40,6 +42,7 @@ func New(name, version string, opts ...Option) *Application {
 		Name:       name,
 		Version:    version,
 		Controller: &Controller{},
+		Logger:     slog.Default(),
 	}
 
 	for _, opt := range opts {
@@ -72,7 +75,7 @@ func (a *Application) Install(ctx context.Context) error {
 		if initializer, ok := im.implementation.(Initializer); ok {
 			itx, err := initializer.Initialize(ctx)
 			if err != nil {
-				return errors.Wrapf(err, "failed to initialize module %q", im.name)
+				return fmt.Errorf("failed to initialize module %q: %w", im.name, err)
 			}
 
 			if itx != nil {
@@ -89,7 +92,7 @@ func (a *Application) Install(ctx context.Context) error {
 		}
 
 		if err := installer.Install(ctx); err != nil {
-			return errors.Wrapf(err, "failed to install module %q", im.name)
+			return fmt.Errorf("failed to install module %q: %w", im.name, err)
 		}
 	}
 
@@ -110,8 +113,8 @@ func (a *Application) Run(ctx context.Context) error {
 	defer func() { close(a.errorCh); a.errorCh = nil }()
 
 	startupTime := time.Now()
-	logging.Info("Starting application %s", a)
-	defer func() { logging.Info("Stopped application %s with runtime of %v", a, time.Since(startupTime)) }()
+	a.Logger.Info("Starting application", "name", a.Name)
+	defer func() { a.Logger.Info("Stopped application", "name", a.Name, "duration", time.Since(startupTime)) }()
 
 	// listen to OS signals
 	schan := make(chan os.Signal, 6)
@@ -154,9 +157,9 @@ APP_RUN:
 			break APP_RUN
 
 		case sig := <-schan:
-			logging.Debug("Signal %v received", sig)
+			a.Logger.Debug("Signal received", "signal", sig)
 			if sig == syscall.SIGHUP || sig == syscall.Signal(21) {
-				logging.Warning("TODO: Implement application reload hooks")
+				a.Logger.Warn("TODO: Implement application reload hooks")
 				// TODO: implement reload
 				break
 			}
@@ -193,6 +196,8 @@ func (a *Application) initialize(ctx context.Context) context.Context {
 		a.Controller = &Controller{}
 	}
 
+	a.Controller.logger = a.Logger
+
 	if a.Settings == nil {
 		// use whatever is configured in the context
 		a.Settings = config.FromContext(ctx)
@@ -221,9 +226,9 @@ func (a *Application) loadConfig(ctx context.Context) error {
 		return nil
 	}
 
-	logging.Info("Loading configuration file %s", a.configFile)
+	a.Logger.Info("Loading configuration", "file", a.configFile)
 	if diags := a.configuration.DecodeFile(ctx, a.configFile); diags.HasErrors() {
-		return errors.Wrap(diags, "failed to load application configuration")
+		return fmt.Errorf("failed to load application configuration: %w", diags)
 	}
 
 	return nil
