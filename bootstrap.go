@@ -1,6 +1,8 @@
 package application
 
 import (
+	"log/slog"
+
 	"github.com/portcullis/application/modules/flags"
 )
 
@@ -16,6 +18,7 @@ func Bootstrap(name, version string, opts ...Option) *Application {
 		Name:       name,
 		Version:    version,
 		Controller: &Controller{},
+		Logger:     slog.Default(),
 	}
 
 	// add the default modules here
