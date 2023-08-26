@@ -1,5 +1,7 @@
 package application
 
+import "log/slog"
+
 // Option for an Application
 type Option func(app *Application)
 
@@ -15,5 +17,12 @@ func WithConfigFile(filename string) Option {
 	return func(a *Application) {
 		a.configuration = &Configuration{}
 		a.configFile = filename
+	}
+}
+
+// WithLogger will set the internal slog.Logger instance
+func WithLogger(logger *slog.Logger) Option {
+	return func(a *Application) {
+		a.Logger = logger
 	}
 }
