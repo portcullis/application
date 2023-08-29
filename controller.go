@@ -120,7 +120,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	for _, rm := range runModules {
 		if initializer, ok := rm.implementation.(Initializer); ok {
 			ts := time.Now()
-			c.logger.Debug("Initializing module", "name", rm.name)
+			c.logger.Debug("Initializing module", "module", rm.name)
 			itx, err := initializer.Initialize(ctx)
 			if err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to initialize module %q: %w", rm.name, err))
@@ -130,7 +130,7 @@ func (c *Controller) Run(ctx context.Context) error {
 			if itx != nil {
 				ctx = itx
 			}
-			c.logger.Debug("Initialized module", "name", rm.name, "duration", time.Since(ts))
+			c.logger.Debug("Initialized module", "module", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -139,13 +139,13 @@ func (c *Controller) Run(ctx context.Context) error {
 	for _, rm := range runModules {
 		if installer, ok := rm.implementation.(Installer); ok {
 			ts := time.Now()
-			c.logger.Debug("Installing module", "name", rm.name)
+			c.logger.Debug("Installing module", "module", rm.name)
 			err := installer.Install(ctx)
 			if err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to install module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			c.logger.Debug("Installed module", "name", rm.name, "duration", time.Since(ts))
+			c.logger.Debug("Installed module", "module", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -154,12 +154,12 @@ func (c *Controller) Run(ctx context.Context) error {
 	for _, rm := range runModules {
 		if prestarter, ok := rm.implementation.(PreStarter); ok {
 			ts := time.Now()
-			c.logger.Debug("PreStarting module", "name", rm.name)
+			c.logger.Debug("PreStarting module", "module", rm.name)
 			if err := prestarter.PreStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to prestart module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			c.logger.Debug("PreStarted module", "name", rm.name, "duration", time.Since(ts))
+			c.logger.Debug("PreStarted module", "module", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -167,24 +167,24 @@ func (c *Controller) Run(ctx context.Context) error {
 	runModules = sortModules(c.modules)
 	for _, rm := range runModules {
 		ts := time.Now()
-		c.logger.Debug("Starting module", "name", rm.name)
+		c.logger.Debug("Starting module", "module", rm.name)
 		if err := rm.implementation.Start(ctx); err != nil {
 			exitErr = exitErr.Append(fmt.Errorf("failed to start module %q: %w", rm.name, err))
 			goto shutdown
 		}
 		rm.started = true
-		c.logger.Debug("Started module", "name", rm.name, "duration", time.Since(ts))
+		c.logger.Debug("Started module", "module", rm.name, "duration", time.Since(ts))
 	}
 
 	for _, rm := range runModules {
 		if poststarter, ok := rm.implementation.(PostStarter); ok {
 			ts := time.Now()
-			c.logger.Debug("PostStarting module", "name", rm.name)
+			c.logger.Debug("PostStarting module", "module", rm.name)
 			if err := poststarter.PostStart(ctx); err != nil {
 				exitErr = exitErr.Append(fmt.Errorf("failed to poststart module %q: %w", rm.name, err))
 				goto shutdown
 			}
-			c.logger.Debug("PostStarted module", "name", rm.name, "duration", time.Since(ts))
+			c.logger.Debug("PostStarted module", "module", rm.name, "duration", time.Since(ts))
 		}
 	}
 
@@ -197,7 +197,6 @@ func (c *Controller) Run(ctx context.Context) error {
 shutdown:
 	sts = time.Now()
 	c.logger.Debug("Module controller teardown starting")
-	defer func() { c.logger.Debug("Module controller teardown completed", "duration", time.Since(sts)) }()
 
 	// reverse them
 	for i, j := 0, len(runModules)-1; i < j; i, j = i+1, j-1 {
@@ -211,17 +210,19 @@ shutdown:
 		}
 
 		ts := time.Now()
-		c.logger.Debug("Stopping module", "name", rm.name)
+		c.logger.Debug("Stopping module", "module", rm.name)
 		rm.started = false
 		if err := rm.implementation.Stop(ctx); err != nil {
 			exitErr = exitErr.Append(fmt.Errorf("failed to stop module %q: %w", rm.name, err))
 		}
-		c.logger.Debug("Stopped module", "name", rm.name, "duration", time.Since(ts))
+		c.logger.Debug("Stopped module", "module", rm.name, "duration", time.Since(ts))
 	}
 
 	if ctx.Err() != context.Canceled {
 		exitErr = exitErr.Append(ctx.Err())
 	}
+
+	c.logger.Debug("Module controller teardown completed", "duration", time.Since(sts))
 
 	return exitErr.Err()
 }

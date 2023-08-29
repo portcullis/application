@@ -49,6 +49,9 @@ func New(name, version string, opts ...Option) *Application {
 		opt(app)
 	}
 
+	// add the application name to all logs on this logger
+	app.Logger = app.Logger.With("app", name)
+
 	return app
 }
 
@@ -113,8 +116,8 @@ func (a *Application) Run(ctx context.Context) error {
 	defer func() { close(a.errorCh); a.errorCh = nil }()
 
 	startupTime := time.Now()
-	a.Logger.Info("Starting application", "name", a.Name)
-	defer func() { a.Logger.Info("Stopped application", "name", a.Name, "duration", time.Since(startupTime)) }()
+	a.Logger.Info("Starting application")
+	defer func() { a.Logger.Info("Stopped application", "duration", time.Since(startupTime)) }()
 
 	// listen to OS signals
 	schan := make(chan os.Signal, 6)
@@ -159,7 +162,7 @@ APP_RUN:
 		case sig := <-schan:
 			a.Logger.Debug("Signal received", "signal", sig)
 			if sig == syscall.SIGHUP || sig == syscall.Signal(21) {
-				a.Logger.Warn("TODO: Implement application reload hooks")
+				a.Logger.Debug("TODO: Implement application reload hooks")
 				// TODO: implement reload
 				break
 			}
@@ -197,14 +200,12 @@ func (a *Application) initialize(ctx context.Context) context.Context {
 	}
 
 	a.Controller.logger = a.Logger
+	ctx = context.WithValue(ctx, applicationContextKey, a)
 
 	if a.Settings == nil {
 		// use whatever is configured in the context
 		a.Settings = config.FromContext(ctx)
 	}
-
-	ctx = context.WithValue(ctx, applicationContextKey, a)
-	ctx = config.NewContext(ctx, a.Settings)
 
 	// some defaults
 	if a.Name == "" {
